@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaGlobe,
   FaDownload,
@@ -16,7 +16,12 @@ import { usePathname } from "next/navigation";
 
 const HeaderBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
@@ -43,10 +48,11 @@ const HeaderBar = () => {
                 key={link.href}
                 href={link.href}
                 className={`text-xs font-semibold ${
-                  pathname === link.href
+                  mounted && pathname === link.href
                     ? "text-green-600"
                     : "text-green-900 hover:text-green-600"
                 }`}
+                suppressHydrationWarning
               >
                 {link.label}
               </Link>
@@ -92,10 +98,11 @@ const HeaderBar = () => {
               href={link.href}
               onClick={closeMenu}
               className={`block text-xs font-semibold ${
-                pathname === link.href
+                mounted && pathname === link.href
                   ? "text-green-600"
                   : "text-green-900 hover:text-green-600"
               }`}
+              suppressHydrationWarning
             >
               {link.label}
             </Link>

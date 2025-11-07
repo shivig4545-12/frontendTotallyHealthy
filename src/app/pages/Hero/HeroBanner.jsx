@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import CustomBtn from "@/app/components/CustomBtn";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -16,20 +16,22 @@ const HeroBanner = () => {
   const [displayBanners, setDisplayBanners] = useState([getDefaultBanner()]);
   const dataFetchedRef = useRef(false);
 
-  // Fetch dynamic data once without blocking UI - static layout always renders
-  if (typeof window !== "undefined" && !dataFetchedRef.current) {
-    dataFetchedRef.current = true;
-    fetchBanners()
-      .then((data) => {
-        if (data && data.length > 0) {
-          setDisplayBanners(data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching banners:", error);
-        // Keep default banner on error - static layout remains
-      });
-  }
+  // Fetch dynamic data once without blocking UI - static layout always renders (useEffect only runs on client side)
+  useEffect(() => {
+    if (!dataFetchedRef.current) {
+      dataFetchedRef.current = true;
+      fetchBanners()
+        .then((data) => {
+          if (data && data.length > 0) {
+            setDisplayBanners(data);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching banners:", error);
+          // Keep default banner on error - static layout remains
+        });
+    }
+  }, []);
 
   return (
     <div className="relative bg-[#f2fef2] overflow-hidden py-16 md:py-24">
