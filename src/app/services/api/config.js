@@ -11,16 +11,26 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Get API URL from .env file
-// Priority: NEXT_PUBLIC_API_URL from .env file > fallback to localhost for development
+// Priority: NEXT_PUBLIC_API_URL from .env file > fallback based on environment
 const getApiUrl = () => {
   // Use NEXT_PUBLIC_API_URL from .env file
-  // - Production: Uses URL from .env file (https://totally-helth.vercel.app/v1/api)
+  // - Production: Uses URL from Vercel environment variables (e.g., https://totally-helth.vercel.app/v1/api)
   // - Development: Uses URL from .env.local file (http://localhost:5050/v1/api) which overrides .env
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
-  // Fallback to localhost only if no .env is set (shouldn't happen in normal usage)
+  // Fallback based on environment
+  if (isProduction) {
+    // In production, if NEXT_PUBLIC_API_URL is not set, this will cause issues
+    // Log a warning so it's visible in production logs
+    console.error('⚠️ NEXT_PUBLIC_API_URL is not set in production! API calls will fail.');
+    console.error('Please set NEXT_PUBLIC_API_URL in Vercel environment variables.');
+    // Return a placeholder that will obviously fail - this helps identify the issue
+    return 'https://api-url-not-configured/v1/api';
+  }
+  
+  // Development fallback
   return 'http://localhost:5050/v1/api';
 };
 
@@ -34,9 +44,13 @@ export const IS_DEVELOPMENT = isDevelopment;
 // Export current environment name
 export const ENVIRONMENT = isProduction ? 'production' : 'development';
 
-// Helper function to log API calls (only in development)
+// Helper function to log API calls
+// Log in production too to help debug API issues
 export const logApiCall = (url, method = 'GET') => {
   if (IS_DEVELOPMENT) {
+    console.log(`[API ${method}] ${url}`);
+  } else {
+    // In production, log to help debug
     console.log(`[API ${method}] ${url}`);
   }
 };
@@ -84,6 +98,7 @@ export const getEnvValue = (devValue, prodValue) => {
 };
 
 // Log current environment info (useful for debugging)
+// Always log in production to help debug API issues
 export const logEnvironmentInfo = () => {
   if (IS_DEVELOPMENT) {
     console.log('🔧 Development Mode');
@@ -91,6 +106,19 @@ export const logEnvironmentInfo = () => {
   } else {
     console.log('🚀 Production Mode');
     console.log('📍 API URL:', API_URL);
+    console.log('📍 NEXT_PUBLIC_API_URL env var:', process.env.NEXT_PUBLIC_API_URL || 'NOT SET');
   }
 };
+
+// Log API URL on module load (helps debug production issues)
+if (typeof window !== 'undefined') {
+  // Only log in browser (client-side)
+  if (IS_PRODUCTION) {
+    console.log('🌐 Client-side API URL:', API_URL);
+    if (!process.env.NEXT_PUBLIC_API_URL) {
+      console.error('❌ NEXT_PUBLIC_API_URL environment variable is not set!');
+      console.error('This will cause API calls to fail. Please configure it in Vercel.');
+    }
+  }
+}
 
