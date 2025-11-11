@@ -1,10 +1,10 @@
 // API service for meal plan work
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiResponse, logApiError } from './config';
 
 export const fetchMealPlanWork = async () => {
   try {
     const url = `${API_URL}/meal-plan-work?status=active`;
-    console.log("Fetching meal plan work from:", url);
+    logApiCall(url);
     
     const response = await fetch(url, {
       method: "GET",
@@ -19,7 +19,7 @@ export const fetchMealPlanWork = async () => {
     }
     
     const data = await response.json();
-    console.log("Meal plan work API response:", data);
+    logApiResponse('fetchMealPlanWork', data);
     
     // Handle the response structure from your backend
     const mealPlanWork = data.data || data;
@@ -54,7 +54,7 @@ export const fetchMealPlanWork = async () => {
       ],
     };
   } catch (error) {
-    console.error("Error fetching meal plan work:", error);
+    logApiError('fetchMealPlanWork', error);
     return null;
   }
 };

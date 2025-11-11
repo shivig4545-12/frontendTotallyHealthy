@@ -1,10 +1,10 @@
 // API service for testimonials
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiResponse, logApiError } from './config';
 
 export const fetchTestimonials = async () => {
   try {
     const url = `${API_URL}/testimonials/public/active`;
-    console.log("Fetching testimonials from:", url);
+    logApiCall(url);
     
     const response = await fetch(url, {
       method: "GET",
@@ -19,7 +19,7 @@ export const fetchTestimonials = async () => {
     }
     
     const data = await response.json();
-    console.log("Testimonials API response:", data);
+    logApiResponse('fetchTestimonials', data);
     
     // Handle the response structure from your backend
     const testimonials = Array.isArray(data) ? data : (data.data || []);
@@ -50,10 +50,10 @@ export const fetchTestimonials = async () => {
         role: testimonial.authorProfession || "",
       }));
     
-    console.log("Processed testimonials:", filteredTestimonials);
+    logApiResponse('fetchTestimonials (processed)', filteredTestimonials);
     return filteredTestimonials;
   } catch (error) {
-    console.error("Error fetching testimonials:", error);
+    logApiError('fetchTestimonials', error);
     return [];
   }
 };

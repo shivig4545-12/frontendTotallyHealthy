@@ -1,9 +1,11 @@
 // Simple API service for banners
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiError } from './config';
 
 export const fetchBanners = async () => {
   try {
-    const response = await fetch(`${API_URL}/banners?`);
+    const url = `${API_URL}/banners?`;
+    logApiCall(url);
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch banners");
     
     const data = await response.json();
@@ -19,7 +21,7 @@ export const fetchBanners = async () => {
       )
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   } catch (error) {
-    console.error("Error fetching banners:", error);
+    logApiError('fetchBanners', error);
     return [];
   }
 };

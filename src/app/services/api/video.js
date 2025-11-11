@@ -1,5 +1,5 @@
 // API service for video
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiResponse, logApiError } from './config';
 
 /**
  * Converts YouTube URL to embed format if needed
@@ -33,7 +33,7 @@ const convertToEmbedUrl = (url) => {
 export const fetchVideo = async () => {
   try {
     const url = `${API_URL}/videos`;
-    console.log("Fetching video from:", url);
+    logApiCall(url);
     
     const response = await fetch(url, {
       method: "GET",
@@ -48,7 +48,7 @@ export const fetchVideo = async () => {
     }
     
     const data = await response.json();
-    console.log("Video API response:", data);
+    logApiResponse('fetchVideo', data);
     
     // Handle the response structure from your backend
     const videoData = data.data || data;
@@ -72,7 +72,7 @@ export const fetchVideo = async () => {
       status: videoData.status || 'active',
     };
   } catch (error) {
-    console.error("Error fetching video:", error);
+    logApiError('fetchVideo', error);
     return null;
   }
 };

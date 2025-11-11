@@ -1,9 +1,11 @@
 // API service for goals
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiError } from './config';
 
 export const fetchGoal = async () => {
   try {
-    const response = await fetch(`${API_URL}/goals?status=active`);
+    const url = `${API_URL}/goals?status=active`;
+    logApiCall(url);
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch goal data");
     
     const data = await response.json();
@@ -21,7 +23,7 @@ export const fetchGoal = async () => {
       sections: goalData.sections || [],
     };
   } catch (error) {
-    console.error("Error fetching goal data:", error);
+    logApiError('fetchGoal', error);
     return null;
   }
 };

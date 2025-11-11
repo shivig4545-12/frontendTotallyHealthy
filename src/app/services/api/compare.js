@@ -1,9 +1,11 @@
 // API service for compare
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiError } from './config';
 
 export const fetchCompare = async () => {
   try {
-    const response = await fetch(`${API_URL}/compare?status=active`);
+    const url = `${API_URL}/compare?status=active`;
+    logApiCall(url);
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch compare data");
     
     const data = await response.json();
@@ -22,7 +24,7 @@ export const fetchCompare = async () => {
       image2: compareData.image2 || "/img/compare/1.webp",
     };
   } catch (error) {
-    console.error("Error fetching compare data:", error);
+    logApiError('fetchCompare', error);
     return null;
   }
 };

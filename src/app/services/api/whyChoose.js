@@ -1,10 +1,10 @@
 // API service for why choose
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiResponse, logApiError } from './config';
 
 export const fetchWhyChoose = async () => {
   try {
     const url = `${API_URL}/why-choose?status=active`;
-    console.log("Fetching why choose from:", url);
+    logApiCall(url);
     
     const response = await fetch(url, {
       method: "GET",
@@ -19,7 +19,7 @@ export const fetchWhyChoose = async () => {
     }
     
     const data = await response.json();
-    console.log("Why choose API response:", data);
+    logApiResponse('fetchWhyChoose', data);
     
     // Handle the response structure from your backend
     const whyChoose = data.data || data;
@@ -52,7 +52,7 @@ export const fetchWhyChoose = async () => {
       ],
     };
   } catch (error) {
-    console.error("Error fetching why choose:", error);
+    logApiError('fetchWhyChoose', error);
     return null;
   }
 };

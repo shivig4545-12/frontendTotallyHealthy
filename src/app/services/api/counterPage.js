@@ -1,9 +1,11 @@
 // API service for counter page
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiError } from './config';
 
 export const fetchCounterPage = async () => {
   try {
-    const response = await fetch(`${API_URL}/counter-page`);
+    const url = `${API_URL}/counter-page`;
+    logApiCall(url);
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch counter page data");
     
     const data = await response.json();
@@ -17,7 +19,7 @@ export const fetchCounterPage = async () => {
       yearsHelpingPeople: counterData.yearsHelpingPeople || 0,
     };
   } catch (error) {
-    console.error("Error fetching counter page data:", error);
+    logApiError('fetchCounterPage', error);
     // Return default values on error
     return {
       totalReviews: 1012,

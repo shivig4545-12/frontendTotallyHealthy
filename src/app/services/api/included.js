@@ -1,9 +1,11 @@
 // API service for included meals
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050/v1/api";
+import { API_URL, logApiCall, logApiError } from './config';
 
 export const fetchIncludedMeals = async () => {
   try {
-    const response = await fetch(`${API_URL}/included?status=active`);
+    const url = `${API_URL}/included?status=active`;
+    logApiCall(url);
+    const response = await fetch(url);
     if (!response.ok) throw new Error("Failed to fetch included meals");
     
     const data = await response.json();
@@ -25,7 +27,7 @@ export const fetchIncludedMeals = async () => {
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
   } catch (error) {
-    console.error("Error fetching included meals:", error);
+    logApiError('fetchIncludedMeals', error);
     return [];
   }
 };
