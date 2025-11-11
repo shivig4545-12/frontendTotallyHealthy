@@ -28,7 +28,9 @@ export default function RootLayout({ children }) {
           <ClientNavWrapper />
         </div>
         {children}
-        <Subscribe />
+        <div suppressHydrationWarning>
+          <Subscribe />
+        </div>
         <Footer />
       </body>
     </html>
