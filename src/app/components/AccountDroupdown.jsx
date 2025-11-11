@@ -25,6 +25,7 @@ const AccountDropdown = () => {
       <button
         onClick={() => setOpen(!open)}
         className="flex text-xs items-center gap-2 py-2 px-3 font-medium text-gray-800 hover:text-black border border-gray-200 cursor-pointer hover:bg-green-50"
+        suppressHydrationWarning
       >
         <FaUser />
         My Profile

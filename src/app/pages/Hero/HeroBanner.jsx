@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import CustomBtn from "@/app/components/CustomBtn";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -9,36 +9,53 @@ import "swiper/css/pagination";
 import { IoFastFood } from "react-icons/io5";
 import { FaAddressBook } from "react-icons/fa";
 import TrustSection from "./TrustSection";
+import { fetchBanners, getDefaultBanner } from "@/app/services/api/banners";
 
 const HeroBanner = () => {
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
-  if (!isMounted) return null;
+  // Static default banner - always available, layout never changes
+  const [displayBanners, setDisplayBanners] = useState([getDefaultBanner()]);
+  const dataFetchedRef = useRef(false);
+
+  // Fetch dynamic data once without blocking UI - static layout always renders (useEffect only runs on client side)
+  useEffect(() => {
+    if (!dataFetchedRef.current) {
+      dataFetchedRef.current = true;
+      fetchBanners()
+        .then((data) => {
+          if (data && data.length > 0) {
+            setDisplayBanners(data);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching banners:", error);
+          // Keep default banner on error - static layout remains
+        });
+    }
+  }, []);
 
   return (
     <div className="relative bg-[#f2fef2] overflow-hidden py-16 md:py-24">
       <div className="max-w-6xl mx-auto">
+        {/* Static Layout Structure - Dynamic Data */}
         <Swiper
           modules={[Autoplay, Pagination]}
           autoplay={{ delay: 4000 }}
           pagination={{ clickable: true }}
-          loop={true}
+          loop={displayBanners.length > 1}
           className="max-w-7xl mx-auto px-4"
         >
-          {[1, 2, 3].map((slide) => (
-            <SwiperSlide key={slide}>
+          {displayBanners.map((banner, index) => (
+            <SwiperSlide key={banner.id || banner._id || index}>
               <div className="flex flex-col md:flex-row items-center">
                 {/* Text Content */}
                 <div className="w-full md:w-1/2 text-center md:text-left">
                   <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4">
-                    The tastiest and easiest way to lose weight fast.
+                    {banner.title || "The tastiest and easiest way to lose weight fast."}
                     <br />
                   </h1>
                   <p className="text-gray-600 mb-6 text-base md:text-lg">
-                    Cooking up made-to-order meal plans to help you look and
-                    feel fantastic! Choose from thousands of meal combinations
-                    and get healthy, nutritious and delicious meals delivered
-                    straight to your door.
+                    {banner.description || banner.subTitle || banner.subtitle || 
+                      "Cooking up made-to-order meal plans to help you look and feel fantastic! Choose from thousands of meal combinations and get healthy, nutritious and delicious meals delivered straight to your door."}
                   </p>
                   <div className="flex flex-wrap justify-center md:justify-start gap-4">
                     <CustomBtn
@@ -54,15 +71,19 @@ const HeroBanner = () => {
                       <FaAddressBook /> Contact Us
                     </CustomBtn>
                   </div>
-                  <TrustSection />
+                  <TrustSection googleReviewCount={banner.googleReviewCount} certLogo={banner.certLogo} />
                 </div>
 
-                {/* Image */}
+                {/* Image - Same Structure as Static */}
                 <div className="w-full md:w-1/2 mt-10 md:mt-0 text-center relative">
                   <img
-                    src={`/img/hero/${slide}.jpg`}
-                    alt={`Slide ${slide}`}
+                    src={banner.image || banner.banner || `/img/hero/${index + 1}.jpg`}
+                    alt={banner.title || `Slide ${index + 1}`}
                     className="w-full max-w-md mx-auto rounded-bl-[30px] shadow-lg"
+                    onError={(e) => {
+                      // Fallback to default image if banner image fails to load
+                      e.target.src = `/img/hero/${index + 1}.jpg`;
+                    }}
                   />
                 </div>
               </div>

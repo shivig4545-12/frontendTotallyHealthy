@@ -1,64 +1,60 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import Image from "next/image";
-import CustomBtn from "@/app/components/CustomBtn";
-
-const RecipesData = [
-  {
-    id: 1,
-    img: "/img/recipes/1.webp",
-    title: "Breakfast",
-    subtitle: "Mediterranean Broccoli Cheese Omelette",
-    Calories: "271.0",
-    fat: "15.7g",
-    carbs: "28.4g",
-    protein: "11.8g",
-    footerTitle: "Allergens",
-    footerDesc: "Dairy, Eggs, Spicy",
-  },
-  {
-    id: 2,
-    img: "/img/recipes/2.webp",
-    title: "Lunch",
-    subtitle: "Grilled Chicken Quinoa Bowl",
-    Calories: "410.0",
-    fat: "12.5g",
-    carbs: "35.2g",
-    protein: "35.0g",
-    footerTitle: "Allergens",
-    footerDesc: "Nuts",
-  },
-  {
-    id: 3,
-    img: "/img/recipes/3.webp",
-    title: "Dinner",
-    subtitle: "Salmon with Steamed Veggies",
-    Calories: "390.0",
-    fat: "20.1g",
-    carbs: "10.3g",
-    protein: "36.5g",
-    footerTitle: "Allergens",
-    footerDesc: "Fish",
-  },
-  {
-    id: 4,
-    img: "/img/recipes/4.webp",
-    title: "Snacks",
-    subtitle: "Greek Yogurt with Berries",
-    Calories: "80.0",
-    fat: "5.0g",
-    carbs: "9.0g",
-    protein: "5.0g",
-    footerTitle: "Allergens",
-    footerDesc: "Dairy",
-  },
-];
+import { fetchIncludedMeals } from "@/app/services/api/included";
 
 const Recipes = () => {
+  const [recipesData, setRecipesData] = useState([]);
+  const [expandedTitles, setExpandedTitles] = useState({});
+  const dataFetchedRef = useRef(false);
+  const TITLE_LIMIT = 30; // Character limit before truncation
+
+  // Transform API data to component format
+  const transformMealData = (meal) => {
+    return {
+      id: meal._id,
+      img: meal.image_url,
+      title: meal.meal_type,
+      subtitle: meal.title,
+      Calories: meal.nutrition?.calories?.toFixed(1) || "0.0",
+      fat: `${meal.nutrition?.fat_g?.toFixed(1) || "0.0"}g`,
+      carbs: `${meal.nutrition?.carbs_g?.toFixed(1) || "0.0"}g`,
+      protein: `${meal.nutrition?.protein_g?.toFixed(1) || "0.0"}g`,
+      footerTitle: "Allergens",
+      footerDesc: meal.allergens && meal.allergens.length > 0 
+        ? meal.allergens.join(", ") 
+        : "None",
+    };
+  };
+
+  // Toggle expanded state for a specific title
+  const toggleTitle = (itemId) => {
+    setExpandedTitles((prev) => ({
+      ...prev,
+      [itemId]: !prev[itemId],
+    }));
+  };
+
+  // Fetch dynamic data once
+  useEffect(() => {
+    if (!dataFetchedRef.current) {
+      dataFetchedRef.current = true;
+      fetchIncludedMeals()
+        .then((meals) => {
+          if (meals && meals.length > 0) {
+            const transformedData = meals.map(transformMealData);
+            setRecipesData(transformedData);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching included meals:", error);
+        });
+    }
+  }, []);
   return (
     <section className="py-10 bg-[#f2fef2] border-b border-dotted">
       <div className="max-w-6xl mx-auto px-4">
@@ -72,18 +68,19 @@ const Recipes = () => {
           </p>
         </div>
 
-        <Swiper
-          modules={[Autoplay, Pagination]}
-          autoplay={{ delay: 3000 }}
-          //   pagination={{ clickable: true }}
-          loop={true}
-          breakpoints={{
-            320: { slidesPerView: 1, spaceBetween: 20 },
-            640: { slidesPerView: 2, spaceBetween: 30 },
-            1024: { slidesPerView: 3, spaceBetween: 40 },
-          }}
-        >
-          {RecipesData.map((item) => (
+        {recipesData.length > 0 ? (
+          <Swiper
+            modules={[Autoplay, Pagination]}
+            autoplay={{ delay: 3000 }}
+            //   pagination={{ clickable: true }}
+            loop={recipesData.length > 3}
+            breakpoints={{
+              320: { slidesPerView: 1, spaceBetween: 20 },
+              640: { slidesPerView: 2, spaceBetween: 30 },
+              1024: { slidesPerView: 3, spaceBetween: 40 },
+            }}
+          >
+            {recipesData.map((item) => (
             <SwiperSlide key={item.id}>
               <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all overflow-hidden p-3 hover:bg-[#f2fef2] hover:border-dotted border border-gray-200">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -104,9 +101,33 @@ const Recipes = () => {
                       <span className="text-[10px] text-green-600 font-medium uppercase">
                         {item.title}
                       </span>
-                      <h3 className="text-sm font-semibold text-gray-800 leading-tight mb-2">
-                        {item.subtitle.slice(0, 25).concat("...")}
-                      </h3>
+                      <div className="mb-2">
+                        <h3 className="text-sm font-semibold text-gray-800 leading-tight">
+                          {item.subtitle.length > TITLE_LIMIT && !expandedTitles[item.id] ? (
+                            <>
+                              {item.subtitle.slice(0, TITLE_LIMIT)}...
+                              <button
+                                onClick={() => toggleTitle(item.id)}
+                                className="text-green-600 hover:text-green-700 font-medium text-xs ml-1 underline cursor-pointer"
+                              >
+                                Read More
+                              </button>
+                            </>
+                          ) : item.subtitle.length > TITLE_LIMIT && expandedTitles[item.id] ? (
+                            <>
+                              {item.subtitle}
+                              <button
+                                onClick={() => toggleTitle(item.id)}
+                                className="text-green-600 hover:text-green-700 font-medium text-xs ml-1 underline cursor-pointer"
+                              >
+                                Read Less
+                              </button>
+                            </>
+                          ) : (
+                            item.subtitle
+                          )}
+                        </h3>
+                      </div>
 
                       <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 mb-3 bg-green-50 p-2 rounded">
                         <p>
@@ -133,8 +154,13 @@ const Recipes = () => {
                 </div>
               </div>
             </SwiperSlide>
-          ))}
-        </Swiper>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <p>Loading delicious recipes...</p>
+          </div>
+        )}
       </div>
     </section>
   );

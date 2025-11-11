@@ -24,9 +24,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${barlow.variable}`}>
       <body className="font-barlow antialiased">
-        <ClientNavWrapper />
+        <div suppressHydrationWarning>
+          <ClientNavWrapper />
+        </div>
         {children}
-        <Subscribe />
+        <div suppressHydrationWarning>
+          <Subscribe />
+        </div>
         <Footer />
       </body>
     </html>

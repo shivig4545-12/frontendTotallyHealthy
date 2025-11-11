@@ -28,20 +28,26 @@ const Subscribe = () => {
         </p>
 
         {/* Form */}
-        <form className="bg-white shadow-lg rounded-2xl sm:rounded-full px-4 py-5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-3 w-full">
+        <form 
+          className="bg-white shadow-lg rounded-2xl sm:rounded-full px-4 py-5 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-3 w-full"
+          suppressHydrationWarning
+        >
           <input
             type="text"
             placeholder="Full Name"
             className="w-full sm:flex-1 px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm"
+            suppressHydrationWarning
           />
           <input
             type="email"
             placeholder="Email"
             className="w-full sm:flex-1 px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-200 text-sm"
+            suppressHydrationWarning
           />
           <button
             type="submit"
             className="w-full cursor-pointer sm:w-auto bg-green-400 hover:bg-green-500 text-white font-semibold px-6 py-3 rounded-full flex items-center justify-center gap-2 text-sm transition-all"
+            suppressHydrationWarning
           >
             <FaPaperPlane className="text-sm" />
             Sign Up

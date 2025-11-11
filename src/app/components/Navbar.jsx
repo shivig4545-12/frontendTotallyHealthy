@@ -59,7 +59,11 @@ const Navbar = () => {
               ))}
 
               <IoLanguage />
-              <select className="bg-transparent text-white border border-white px-2 py-0.5 text-xs rounded focus:outline-none focus:ring-2 focus:ring-white">
+              <select 
+                suppressHydrationWarning
+                className="bg-transparent text-white border border-white px-2 py-0.5 text-xs rounded focus:outline-none focus:ring-2 focus:ring-white"
+                defaultValue="en"
+              >
                 <option className="text-black" value="en">
                   English
                 </option>

@@ -1,32 +1,64 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { FaStar, FaBellConcierge, FaUsers } from "react-icons/fa6";
 import { FaSmile } from "react-icons/fa";
-
-const stats = [
-  {
-    icon: FaStar,
-    number: "1,012+",
-    label: "Reviews",
-  },
-  {
-    icon: FaBellConcierge,
-    number: "2,000+",
-    label: "Meal Items",
-  },
-  {
-    icon: FaSmile,
-    number: "300,000+",
-    label: "Happy Clients",
-  },
-  {
-    icon: FaUsers,
-    number: "15+",
-    label: "Years Helping People",
-  },
-];
+import { fetchCounterPage } from "@/app/services/api/counterPage";
 
 const Counter = () => {
+  const [counterData, setCounterData] = useState({
+    totalReviews: 1012,
+    totalMealItems: 2000,
+    happyClients: 300000,
+    yearsHelpingPeople: 15,
+  });
+  const dataFetchedRef = useRef(false);
+
+  // Format number with commas and add + sign
+  const formatNumber = (num) => {
+    if (num === null || num === undefined) return "0+";
+    return num.toLocaleString("en-US") + "+";
+  };
+
+  // Fetch counter data once
+  useEffect(() => {
+    if (!dataFetchedRef.current) {
+      dataFetchedRef.current = true;
+      fetchCounterPage()
+        .then((data) => {
+          if (data) {
+            setCounterData(data);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching counter page data:", error);
+          // Keep default values on error
+        });
+    }
+  }, []);
+
+  const stats = [
+    {
+      icon: FaStar,
+      number: formatNumber(counterData.totalReviews),
+      label: "Reviews",
+    },
+    {
+      icon: FaBellConcierge,
+      number: formatNumber(counterData.totalMealItems),
+      label: "Meal Items",
+    },
+    {
+      icon: FaSmile,
+      number: formatNumber(counterData.happyClients),
+      label: "Happy Clients",
+    },
+    {
+      icon: FaUsers,
+      number: formatNumber(counterData.yearsHelpingPeople),
+      label: "Years Helping People",
+    },
+  ];
+
   return (
     <section className="py-10 bg-green-50 border border-green-100">
       <div className="max-w-6xl mx-auto px-6">
