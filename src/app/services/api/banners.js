@@ -3,6 +3,7 @@ import { API_URL, logApiCall, logApiError } from './config';
 
 export const fetchBanners = async () => {
   try {
+    console.log("API_URL" , API_URL)
     const url = `${API_URL}/banners?`;
     logApiCall(url);
     const response = await fetch(url);

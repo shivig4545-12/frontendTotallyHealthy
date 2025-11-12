@@ -15,7 +15,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 const getApiUrl = () => {
   // Use NEXT_PUBLIC_API_URL from .env file
   // - Production: Uses URL from Vercel environment variables (e.g., https://totally-helth.vercel.app/v1/api)
-  // - Development: Uses URL from .env.local file (http://localhost:5050/v1/api) which overrides .env
+  // - Development: Uses URL from .env.local file (https://totally-helth.vercel.app/v1/api) which overrides .env
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
@@ -31,7 +31,7 @@ const getApiUrl = () => {
   }
   
   // Development fallback
-  return 'http://localhost:5050/v1/api';
+  return 'https://totally-helth.vercel.app/v1/api';
 };
 
 // Export API URL
