@@ -1,7 +1,128 @@
-import CustomBtn from "@/app/components/CustomBtn";
-import React from "react";
+"use client";
+import React, { useState } from "react";
+import { createContact } from "@/app/services/api/contact";
 
 const ContactUs = () => {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    emailAddress: "",
+    phoneNumber: "",
+    subject: "",
+    message: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error when user starts typing
+    if (error) setError("");
+    if (success) setSuccess(false);
+  };
+
+  const validateForm = () => {
+    // Reset errors
+    setError("");
+
+    // Validate full name
+    if (!formData.fullName.trim()) {
+      setError("Full name is required");
+      return false;
+    }
+    if (formData.fullName.trim().length < 2) {
+      setError("Full name must be at least 2 characters");
+      return false;
+    }
+
+    // Validate email
+    if (!formData.emailAddress.trim()) {
+      setError("Email address is required");
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.emailAddress.trim())) {
+      setError("Please provide a valid email address");
+      return false;
+    }
+
+    // Validate phone number (if provided)
+    if (formData.phoneNumber.trim()) {
+      const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+      if (!phoneRegex.test(formData.phoneNumber.trim())) {
+        setError("Please provide a valid phone number");
+        return false;
+      }
+    }
+
+    // Validate subject (if provided)
+    if (formData.subject.trim() && formData.subject.trim().length > 200) {
+      setError("Subject cannot exceed 200 characters");
+      return false;
+    }
+
+    // Validate message
+    if (!formData.message.trim()) {
+      setError("Message is required");
+      return false;
+    }
+    if (formData.message.trim().length < 10) {
+      setError("Message must be at least 10 characters");
+      return false;
+    }
+    if (formData.message.trim().length > 2000) {
+      setError("Message cannot exceed 2000 characters");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await createContact(
+        formData.fullName,
+        formData.emailAddress,
+        formData.phoneNumber,
+        formData.subject,
+        formData.message
+      );
+      
+      setSuccess(true);
+      // Reset form
+      setFormData({
+        fullName: "",
+        emailAddress: "",
+        phoneNumber: "",
+        subject: "",
+        message: "",
+      });
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setSuccess(false);
+      }, 5000);
+    } catch (err) {
+      setError(err.message || "Failed to submit contact enquiry. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <section className="bg-[#f8f5f0] py-16">
       <div className="max-w-6xl mx-auto px-6">
@@ -22,26 +143,62 @@ const ContactUs = () => {
               Send Message
             </h3>
 
-            <form className="space-y-5">
+            {/* Success Message */}
+            {success && (
+              <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                Contact enquiry submitted successfully! We'll get back to you soon.
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+
+            <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">
-                    Full Name:
+                    Full Name: <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
-                    className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#aa8453]"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">
-                    Your Email:
+                    Your Email: <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
-                    className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none"
+                    name="emailAddress"
+                    value={formData.emailAddress}
+                    onChange={handleChange}
+                    className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#aa8453]"
+                    required
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Phone Number:
+                </label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#aa8453]"
+                  placeholder="(optional)"
+                />
               </div>
 
               <div>
@@ -50,25 +207,42 @@ const ContactUs = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none"
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleChange}
+                  className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#aa8453]"
+                  placeholder="(optional)"
+                  maxLength={200}
                 />
               </div>
 
               <div>
                 <label className="block text-sm text-gray-600 mb-1">
-                  Message:
+                  Message: <span className="text-red-500">*</span>
                 </label>
                 <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
                   rows="6"
-                  className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none resize-none"
+                  className="w-full border bg-white border-gray-300 rounded px-4 py-2 focus:outline-none focus:border-[#aa8453] resize-none"
+                  required
+                  maxLength={2000}
                 ></textarea>
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.message.length}/2000 characters
+                </p>
               </div>
 
-              <CustomBtn
-                children="Send Message"
-                className="px-4 py-2"
-                href="#"
-              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`default-btn px-4 py-2 ${
+                  isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+              >
+                {isLoading ? "Sending..." : "Send Message"}
+              </button>
             </form>
           </div>
 
