@@ -56,3 +56,96 @@ export const createContact = async (fullName, emailAddress, phoneNumber, subject
   }
 };
 
+/**
+ * Get Get In Touch data (Public endpoint)
+ * @param {string} id - Optional Get In Touch ID. If not provided, returns the first available record
+ * @returns {Promise<Object|null>} Get In Touch data or null if no data exists
+ */
+export const getGetInTouch = async (id = null) => {
+  try {
+    const url = id ? `${API_URL}/get-in-touch/${id}` : `${API_URL}/get-in-touch`;
+    logApiCall(url, 'GET');
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch Get In Touch data: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    logApiResponse('getGetInTouch', data);
+    
+    return {
+      success: true,
+      data: data.data || null,
+      message: data.message || 'Get In Touch data retrieved successfully',
+    };
+  } catch (error) {
+    logApiError('getGetInTouch', error);
+    throw error;
+  }
+};
+
+/**
+ * Create or update Get In Touch data (Admin endpoint)
+ * @param {string} id - Get In Touch ID (MongoDB ObjectId)
+ * @param {Object} getInTouchData - Get In Touch data
+ * @param {string} getInTouchData.title - Title
+ * @param {string} getInTouchData.officeAddress - Office address
+ * @param {string[]} getInTouchData.contactNumbers - Array of contact numbers
+ * @param {string[]} getInTouchData.emailAddresses - Array of email addresses
+ * @param {string} getInTouchData.careerInfo - Career information
+ * @param {string} token - Optional authentication token for admin access
+ * @returns {Promise<Object>} Response data
+ */
+export const upsertGetInTouch = async (id, getInTouchData, token = null) => {
+  try {
+    const url = `${API_URL}/get-in-touch/${id}`;
+    logApiCall(url, 'PUT');
+    
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Add authorization header if token is provided
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        title: getInTouchData.title?.trim(),
+        officeAddress: getInTouchData.officeAddress?.trim(),
+        contactNumbers: getInTouchData.contactNumbers || [],
+        emailAddresses: getInTouchData.emailAddresses || [],
+        careerInfo: getInTouchData.careerInfo?.trim(),
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to save Get In Touch data: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    logApiResponse('upsertGetInTouch', data);
+    
+    return {
+      success: true,
+      data: data.data || data,
+      message: data.message || 'Get In Touch data saved successfully',
+    };
+  } catch (error) {
+    logApiError('upsertGetInTouch', error);
+    throw error;
+  }
+};
+

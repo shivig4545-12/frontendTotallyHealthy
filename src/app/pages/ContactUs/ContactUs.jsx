@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { createContact } from "@/app/services/api/contact";
+import React, { useState, useEffect } from "react";
+import { createContact, getGetInTouch } from "@/app/services/api/contact";
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +13,8 @@ const ContactUs = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [getInTouchData, setGetInTouchData] = useState(null);
+  const [isLoadingGetInTouch, setIsLoadingGetInTouch] = useState(true);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,6 +83,26 @@ const ContactUs = () => {
 
     return true;
   };
+
+  // Fetch Get In Touch data on component mount
+  useEffect(() => {
+    const fetchGetInTouch = async () => {
+      try {
+        setIsLoadingGetInTouch(true);
+        const response = await getGetInTouch();
+        if (response.success && response.data) {
+          setGetInTouchData(response.data);
+        }
+      } catch (err) {
+        // Silently fail - will use fallback/default values
+        console.error('Failed to fetch Get In Touch data:', err);
+      } finally {
+        setIsLoadingGetInTouch(false);
+      }
+    };
+
+    fetchGetInTouch();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -251,52 +273,119 @@ const ContactUs = () => {
             <h3 className="text-xl font-semibold text-gray-800 mb-6 tracking-widest down-line">
               Get In Touch
             </h3>
-            <p className="text-sm text-gray-600 mb-6 tracking-wider">
-              Nullam vel enim risus. Integer rhoncus hendrerit sem egestas
-              porttitor.
-            </p>
-
-            <div className="space-y-5 text-sm text-gray-700">
-              <div>
-                <h6 className="font-semibold text-lg mb-3 text-black">
-                  Office Address :
-                </h6>
-                <p className="tracking-wider">
-                  Floor 15, Tower X2, Cluster X, Jumeirah Lakes Towers, Dubai,
-                  UAE. P.O. Box 391150
-                </p>
+            
+            {isLoadingGetInTouch ? (
+              <div className="text-sm text-gray-600 mb-6">
+                Loading contact information...
               </div>
+            ) : (
+              <>
+                {getInTouchData?.title && (
+                  <p className="text-sm text-gray-600 mb-6 tracking-wider">
+                    {getInTouchData.title}
+                  </p>
+                )}
 
-              <div>
-                <h6 className="font-semibold text-lg mb-3 text-black">
-                  Contact Number :
-                </h6>
-                <p className="tracking-wider">
-                  (+91) 9090909090, (+91) 9876543210
-                </p>
-              </div>
+                <div className="space-y-5 text-sm text-gray-700">
+                  {getInTouchData?.officeAddress && (
+                    <div>
+                      <h6 className="font-semibold text-lg mb-3 text-black">
+                        Office Address :
+                      </h6>
+                      <p className="tracking-wider">
+                        {getInTouchData.officeAddress}
+                      </p>
+                    </div>
+                  )}
 
-              <div>
-                <h6 className="font-semibold text-lg mb-3 text-black">
-                  Email Address :
-                </h6>
-                <p className="tracking-wider">
-                  Info@mealplans.com, support@mealplans.com
-                </p>
-              </div>
+                  {getInTouchData?.contactNumbers && getInTouchData.contactNumbers.length > 0 && (
+                    <div>
+                      <h6 className="font-semibold text-lg mb-3 text-black">
+                        Contact Number :
+                      </h6>
+                      <p className="tracking-wider">
+                        {getInTouchData.contactNumbers.join(', ')}
+                      </p>
+                    </div>
+                  )}
 
-              <div>
-                <h6 className="font-semibold text-lg mb-3 text-black">
-                  Career Info
-                </h6>
-                <p className="tracking-wider">
-                  If you’re interested in employment opportunities at Unicoder,
-                  please email us:
-                  <br />
-                  <span className="text-[#aa8453]">support@mealplans.com</span>
-                </p>
-              </div>
-            </div>
+                  {getInTouchData?.emailAddresses && getInTouchData.emailAddresses.length > 0 && (
+                    <div>
+                      <h6 className="font-semibold text-lg mb-3 text-black">
+                        Email Address :
+                      </h6>
+                      <p className="tracking-wider">
+                        {getInTouchData.emailAddresses.join(', ')}
+                      </p>
+                    </div>
+                  )}
+
+                  {getInTouchData?.careerInfo && (
+                    <div>
+                      <h6 className="font-semibold text-lg mb-3 text-black">
+                        Career Info
+                      </h6>
+                      <p className="tracking-wider">
+                        {getInTouchData.careerInfo.split(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/).map((part, index) => {
+                          // Check if this part is an email address
+                          const isEmail = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(part);
+                          return isEmail ? (
+                            <span key={index} className="text-[#aa8453]">{part}</span>
+                          ) : (
+                            <span key={index}>{part}</span>
+                          );
+                        })}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Fallback to default values if no data is available */}
+                  {!getInTouchData && (
+                    <>
+                      <div>
+                        <h6 className="font-semibold text-lg mb-3 text-black">
+                          Office Address :
+                        </h6>
+                        <p className="tracking-wider">
+                          Floor 15, Tower X2, Cluster X, Jumeirah Lakes Towers, Dubai,
+                          UAE. P.O. Box 391150
+                        </p>
+                      </div>
+
+                      <div>
+                        <h6 className="font-semibold text-lg mb-3 text-black">
+                          Contact Number :
+                        </h6>
+                        <p className="tracking-wider">
+                          (+91) 9090909090, (+91) 9876543210
+                        </p>
+                      </div>
+
+                      <div>
+                        <h6 className="font-semibold text-lg mb-3 text-black">
+                          Email Address :
+                        </h6>
+                        <p className="tracking-wider">
+                          Info@mealplans.com, support@mealplans.com
+                        </p>
+                      </div>
+
+                      <div>
+                        <h6 className="font-semibold text-lg mb-3 text-black">
+                          Career Info
+                        </h6>
+                        <p className="tracking-wider">
+                          If you're interested in employment opportunities at Unicoder,
+                          please email us:
+                          <br />
+                          <span className="text-[#aa8453]">support@mealplans.com</span>
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
